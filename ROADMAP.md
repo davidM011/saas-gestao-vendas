@@ -21,14 +21,14 @@
 - [x] Alerta estoque baixo
 
 ## Fase 5 - Vendas
-- [ ] CriaÃ§Ã£o de venda
-- [ ] Baixa automÃ¡tica estoque
-- [ ] CÃ¡lculo lucro por venda
+- [x] CriaÃ§Ã£o de venda
+- [x] Baixa automÃ¡tica estoque
+- [x] CÃ¡lculo lucro por venda
 
 ## Fase 6 - RecebÃ­veis
-- [ ] Vendas a prazo
-- [ ] Alertas vencimento
+- [x] Vendas a prazo
+- [x] Alertas vencimento
 
 ## Fase 7 - Dashboard
-- [ ] MÃ©tricas
-- [ ] GrÃ¡ficos
+- [x] MÃ©tricas
+- [x] GrÃ¡ficos
