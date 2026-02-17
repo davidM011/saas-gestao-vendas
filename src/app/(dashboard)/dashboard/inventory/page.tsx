@@ -17,6 +17,16 @@ type Product = {
   createdAt: string;
 };
 
+type InventoryResponse = {
+  items: Product[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  } | null;
+};
+
 type ProductForm = {
   name: string;
   costPrice: string;
@@ -50,8 +60,13 @@ const initialMovementForm: MovementForm = { productId: "", type: "IN", quantity:
 
 export default function InventoryPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [productOptions, setProductOptions] = useState<Product[]>([]);
   const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
   const [movements, setMovements] = useState<StockMovement[]>([]);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [search, setSearch] = useState("");
+  const [pagination, setPagination] = useState<{ page: number; pageSize: number; total: number; totalPages: number } | null>(null);
 
   const [productForm, setProductForm] = useState<ProductForm>(initialProductForm);
   const [movementForm, setMovementForm] = useState<MovementForm>(initialMovementForm);
@@ -63,13 +78,28 @@ export default function InventoryPage() {
 
   const productTitle = useMemo(() => (editingId ? "Editar produto" : "Novo produto"), [editingId]);
 
-  async function loadProducts() {
-    const response = await fetch("/api/inventory", { cache: "no-store" });
-    const data = await response.json().catch(() => []);
-    if (response.ok) {
-      setProducts(data);
-      if (!movementForm.productId && data.length > 0) {
-        setMovementForm((prev) => ({ ...prev, productId: data[0].id }));
+  async function loadProducts(targetPage = page, targetSearch = search) {
+    const params = new URLSearchParams({
+      page: String(targetPage),
+      pageSize: String(pageSize),
+      search: targetSearch,
+    });
+
+    const response = await fetch(`/api/inventory?${params.toString()}`, { cache: "no-store" });
+    const data = (await response.json().catch(() => null)) as InventoryResponse | null;
+    if (response.ok && data) {
+      setProducts(data.items);
+      setPagination(data.pagination);
+    }
+  }
+
+  async function loadProductOptions() {
+    const response = await fetch("/api/inventory?all=true", { cache: "no-store" });
+    const data = (await response.json().catch(() => null)) as InventoryResponse | null;
+    if (response.ok && data) {
+      setProductOptions(data.items);
+      if (!movementForm.productId && data.items.length > 0) {
+        setMovementForm((prev) => ({ ...prev, productId: data.items[0].id }));
       }
     }
   }
@@ -87,12 +117,18 @@ export default function InventoryPage() {
   }
 
   async function refreshInventory() {
-    await Promise.all([loadProducts(), loadLowStock(), loadMovements()]);
+    await Promise.all([loadProducts(page, search), loadProductOptions(), loadLowStock(), loadMovements()]);
   }
 
   useEffect(() => {
     void refreshInventory();
-  }, []);
+  }, [page]);
+
+  async function applySearch(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setPage(1);
+    await loadProducts(1, search);
+  }
 
   async function handleProductSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -299,7 +335,7 @@ export default function InventoryPage() {
                 onChange={(e) => setMovementForm((prev) => ({ ...prev, productId: e.target.value }))}
                 required
               >
-                {products.map((product) => (
+                {productOptions.map((product) => (
                   <option key={product.id} value={product.id}>
                     {product.name}
                   </option>
@@ -358,6 +394,15 @@ export default function InventoryPage() {
             <CardTitle>Produtos</CardTitle>
           </CardHeader>
           <CardContent>
+            <form className="mb-3 flex gap-2" onSubmit={applySearch}>
+              <Input
+                placeholder="Buscar por nome"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <Button type="submit" variant="secondary">Buscar</Button>
+            </form>
+
             <Table>
               <TableHeader>
               <TableRow>
@@ -396,6 +441,34 @@ export default function InventoryPage() {
               )}
               </TableBody>
             </Table>
+
+            {pagination && (
+              <div className="mt-3 flex items-center justify-between text-sm">
+                <span>
+                  Pagina {pagination.page} de {pagination.totalPages} ({pagination.total} itens)
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    disabled={pagination.page <= 1}
+                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  >
+                    Anterior
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    disabled={pagination.page >= pagination.totalPages}
+                    onClick={() => setPage((prev) => Math.min(pagination.totalPages, prev + 1))}
+                  >
+                    Proxima
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

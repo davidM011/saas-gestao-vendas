@@ -1,6 +1,6 @@
-# ROADMAP - SaaS Gestão
+﻿# ROADMAP - SaaS GestÃ£o
 
-## Fase 1 - Fundação (Concluído)
+## Fase 1 - FundaÃ§Ã£o (ConcluÃ­do)
 - [x] Setup Next
 - [x] Prisma
 - [x] Auth
@@ -8,27 +8,27 @@
 - [x] Layout base
 
 ## Fase 2 - Produtos
-- [ ] CRUD completo
-- [ ] Margem bruta
-- [ ] Paginação
-- [ ] Validação
+- [x] CRUD completo
+- [x] Margem bruta
+- [x] PaginaÃ§Ã£o
+- [x] ValidaÃ§Ã£o
 
 ## Fase 3 - Clientes
-- [ ] CRUD completo
+- [x] CRUD completo
 
 ## Fase 4 - Estoque
-- [ ] Movimentações
-- [ ] Alerta estoque baixo
+- [x] MovimentaÃ§Ãµes
+- [x] Alerta estoque baixo
 
 ## Fase 5 - Vendas
-- [ ] Criação de venda
-- [ ] Baixa automática estoque
-- [ ] Cálculo lucro por venda
+- [ ] CriaÃ§Ã£o de venda
+- [ ] Baixa automÃ¡tica estoque
+- [ ] CÃ¡lculo lucro por venda
 
-## Fase 6 - Recebíveis
+## Fase 6 - RecebÃ­veis
 - [ ] Vendas a prazo
 - [ ] Alertas vencimento
 
 ## Fase 7 - Dashboard
-- [ ] Métricas
-- [ ] Gráficos
+- [ ] MÃ©tricas
+- [ ] GrÃ¡ficos

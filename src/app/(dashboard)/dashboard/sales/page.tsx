@@ -14,6 +14,16 @@ type Product = {
   stock: number;
 };
 
+type InventoryResponse = {
+  items: Product[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  } | null;
+};
+
 type Sale = {
   id: string;
   total: number;
@@ -37,14 +47,14 @@ export default function SalesPage() {
   const [loading, setLoading] = useState(false);
 
   async function loadProducts() {
-    const response = await fetch("/api/inventory", { cache: "no-store" });
-    const data = await response.json().catch(() => []);
-    if (response.ok) {
-      setProducts(data);
+    const response = await fetch("/api/inventory?all=true", { cache: "no-store" });
+    const data = (await response.json().catch(() => null)) as InventoryResponse | null;
+    if (response.ok && data) {
+      setProducts(data.items);
       setItems((prev) =>
         prev.map((item) => ({
           ...item,
-          productId: item.productId || data[0]?.id || "",
+          productId: item.productId || data.items[0]?.id || "",
         })),
       );
     }

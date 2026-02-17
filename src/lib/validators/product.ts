@@ -10,6 +10,12 @@ export const createProductSchema = z.object({
 
 export const updateProductSchema = createProductSchema;
 
+export const listProductsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(10),
+  search: z.string().trim().optional().default(""),
+});
+
 const movementTypes = ["IN", "OUT", "ADJUST"] as const;
 
 export const createStockMovementSchema = z
@@ -44,3 +50,4 @@ export const createStockMovementSchema = z
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type CreateStockMovementInput = z.infer<typeof createStockMovementSchema>;
+export type ListProductsQueryInput = z.infer<typeof listProductsQuerySchema>;

@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import type { CreateProductInput, CreateStockMovementInput, UpdateProductInput } from "@/lib/validators/product";
+import type { CreateProductInput, CreateStockMovementInput, ListProductsQueryInput, UpdateProductInput } from "@/lib/validators/product";
 
 function assertTenant(tenantId?: string) {
   if (!tenantId) {
@@ -8,11 +8,40 @@ function assertTenant(tenantId?: string) {
   return tenantId;
 }
 
-export async function listInventoryByTenant(tenantId?: string) {
+export async function listInventoryByTenant(tenantId: string | undefined, query: ListProductsQueryInput) {
+  const safeTenantId = assertTenant(tenantId);
+  const search = query.search.trim();
+  const where = {
+    tenantId: safeTenantId,
+    ...(search.length > 0 ? { name: { contains: search, mode: "insensitive" as const } } : {}),
+  };
+
+  const [items, total] = await Promise.all([
+    db.product.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (query.page - 1) * query.pageSize,
+      take: query.pageSize,
+    }),
+    db.product.count({ where }),
+  ]);
+
+  return {
+    items,
+    pagination: {
+      page: query.page,
+      pageSize: query.pageSize,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / query.pageSize)),
+    },
+  };
+}
+
+export async function listAllProductsByTenant(tenantId?: string) {
   const safeTenantId = assertTenant(tenantId);
   return db.product.findMany({
     where: { tenantId: safeTenantId },
-    orderBy: { createdAt: "desc" },
+    orderBy: { name: "asc" },
   });
 }
 
