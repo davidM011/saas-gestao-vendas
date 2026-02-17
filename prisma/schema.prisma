@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id                  String               @id @default(uuid())
+  name                String
+  memberships         Membership[]
+  products            Product[]
+  customers           Customer[]
+  sales               Sale[]
+  saleItems           SaleItem[]
+  receivables         Receivable[]
+  stockMovements      StockMovement[]
+  passwordResetTokens PasswordResetToken[]
+  createdAt           DateTime             @default(now())
+}
+
+model User {
+  id                  String               @id @default(uuid())
+  name                String?
+  email               String               @unique
+  password            String
+  memberships         Membership[]
+  passwordResetTokens PasswordResetToken[]
+  createdAt           DateTime             @default(now())
+}
+
+model Membership {
+  id       String @id @default(uuid())
+  userId   String
+  tenantId String
+  role     String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId])
+}
+
+model Product {
+  id             String          @id @default(uuid())
+  name           String
+  costPrice      Float
+  salePrice      Float
+  stock          Int
+  minStock       Int             @default(0)
+  tenantId       String
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  stockMovements StockMovement[]
+  createdAt      DateTime        @default(now())
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String?
+  email     String?
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Sale {
+  id          String       @id @default(uuid())
+  total       Float
+  tenantId    String
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  items       SaleItem[]
+  receivables Receivable[]
+  createdAt   DateTime     @default(now())
+}
+
+model SaleItem {
+  id        String   @id @default(uuid())
+  saleId    String
+  productId String
+  quantity  Int
+  unitPrice Float
+  unitCost  Float
+  tenantId  String
+  sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+model Receivable {
+  id        String   @id @default(uuid())
+  saleId    String
+  amount    Float
+  dueDate   DateTime
+  status    String
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([saleId])
+}
+
+model StockMovement {
+  id        String   @id @default(uuid())
+  tenantId  String
+  productId String
+  type      String
+  quantity  Int
+  reason    String?
+  createdAt DateTime @default(now())
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([productId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tenantId  String
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+}
